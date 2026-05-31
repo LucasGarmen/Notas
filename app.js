@@ -438,6 +438,7 @@ function renderEditor() {
   renderMeta(note);
 
   els.saveButton.textContent = state.isEditing ? "Guardar" : "Editar";
+  els.saveButton.classList.toggle("save-mode", state.isEditing);
   els.saveButton.setAttribute("aria-label", state.isEditing ? "Guardar nota" : "Editar nota");
   els.favoriteButton.textContent = "\u2605";
   els.favoriteButton.classList.toggle("is-active", note.favorite);

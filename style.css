@@ -433,6 +433,12 @@ textarea:focus-visible {
   background: var(--primary-soft);
 }
 
+.toolbar-button.save-mode {
+  border-color: #dc2626;
+  background: #ef4444;
+  color: #171717;
+}
+
 .toolbar-button.danger {
   color: var(--danger);
 }
