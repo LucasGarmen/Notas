@@ -1,10 +1,12 @@
-const CACHE_NAME = "notas-locales-v9";
+const CACHE_NAME = "notas-locales-v10";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
 // Guarda la app base para que pueda abrir sin conexion.
