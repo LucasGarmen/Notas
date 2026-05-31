@@ -1,0 +1,26 @@
+{
+  "name": "Notas Locales",
+  "short_name": "Notas",
+  "description": "Aplicacion de notas local, instalable, responsive y offline-first.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f4ef",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20rx='96'%20fill='%232563eb'/%3E%3Cpath%20d='M136%2096h240c30%200%2056%2026%2056%2056v208c0%2030-26%2056-56%2056H136c-30%200-56-26-56-56V152c0-30%2026-56%2056-56Z'%20fill='%23ffffff'/%3E%3Cpath%20d='M160%20188h192M160%20256h192M160%20324h124'%20stroke='%232563eb'%20stroke-width='34'%20stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20rx='96'%20fill='%232563eb'/%3E%3Cpath%20d='M136%2096h240c30%200%2056%2026%2056%2056v208c0%2030-26%2056-56%2056H136c-30%200-56-26-56-56V152c0-30%2026-56%2056-56Z'%20fill='%23ffffff'/%3E%3Cpath%20d='M160%20188h192M160%20256h192M160%20324h124'%20stroke='%232563eb'%20stroke-width='34'%20stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "_comment": "Si prefieres iconos PNG reales, crea icons/icon-192.png e icons/icon-512.png y reemplaza los src de arriba."
+}
