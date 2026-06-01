@@ -62,6 +62,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -72,6 +73,7 @@ button {
 
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
 textarea:focus-visible {
   outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
@@ -232,6 +234,17 @@ textarea:focus-visible {
   border-color: var(--primary);
   background: var(--primary);
   color: var(--primary-contrast);
+}
+
+.language-select {
+  width: 58px;
+  min-height: 44px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-weight: 800;
 }
 
 .layout {
@@ -440,13 +453,15 @@ textarea:focus-visible {
 }
 
 #saveButton.save-mode {
-  border-color: #dc2626;
-  background: #ef4444;
+  border-color: #16a34a;
+  background: #22c55e;
   color: #000000;
 }
 
 .toolbar-button.danger {
-  color: var(--danger);
+  border-color: #dc2626;
+  background: #ef4444;
+  color: #000000;
 }
 
 .star-button {

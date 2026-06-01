@@ -3,28 +3,35 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="Aplicacion de notas local, instalable y offline-first.">
+    <meta name="description" content="Aplicacion de notas local, instalable y offline-first." data-i18n-content="metaDescription">
     <meta name="theme-color" content="#2563eb" id="themeColorMeta">
-    <title>Block de Notas</title>
+    <title data-i18n="documentTitle">Block de Notas</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='24' fill='%232563eb'/%3E%3Cpath d='M34 26h60a10 10 0 0 1 10 10v56a10 10 0 0 1-10 10H34a10 10 0 0 1-10-10V36a10 10 0 0 1 10-10Z' fill='%23ffffff'/%3E%3Cpath d='M42 48h44M42 64h44M42 80h28' stroke='%232563eb' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
+    <script src="translations.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body data-view="list">
     <div class="app-shell">
       <header class="topbar">
-        <button class="plain-button mobile-only" id="backButton" type="button">Volver</button>
+        <button class="plain-button mobile-only" id="backButton" type="button" data-i18n="back">Volver</button>
 
-        <div class="brand" aria-label="Notas Locales">
+        <div class="brand" aria-label="Notas Locales" data-i18n-aria-label="brandLabel">
           <span class="brand-mark" aria-hidden="true">N</span>
           <div>
-            <h1>Block de Notas</h1>
+            <h1 data-i18n="appName">Block de Notas</h1>
             <p id="saveStatus">Guardado local</p>
           </div>
         </div>
 
         <div class="top-actions">
+          <label class="sr-only" for="languageSelect" data-i18n="languageLabel">Idioma</label>
+          <select class="language-select" id="languageSelect" aria-label="Idioma" data-i18n-aria-label="languageLabel">
+            <option value="es">ES</option>
+            <option value="pt">PT</option>
+            <option value="en">EN</option>
+          </select>
           <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Cambiar a modo oscuro">
             <span class="theme-switch-track" aria-hidden="true">
               <span class="theme-switch-icon">&#9788;</span>
@@ -32,30 +39,30 @@
               <span class="theme-switch-thumb"></span>
             </span>
           </button>
-          <button class="primary-button" id="newNoteButton" type="button">Nueva</button>
+          <button class="primary-button" id="newNoteButton" type="button" data-i18n="newNote">Nueva</button>
         </div>
       </header>
 
       <main class="layout" id="appLayout">
-        <section class="list-pane" id="listPane" aria-label="Lista de notas">
+        <section class="list-pane" id="listPane" aria-label="Lista de notas" data-i18n-aria-label="listPaneLabel">
           <div class="search-area">
-            <label class="sr-only" for="searchInput">Buscar notas</label>
-            <input id="searchInput" class="search-input" type="search" placeholder="Buscar por titulo o contenido" autocomplete="off">
+            <label class="sr-only" for="searchInput" data-i18n="searchNotes">Buscar notas</label>
+            <input id="searchInput" class="search-input" type="search" placeholder="Buscar por titulo o contenido" autocomplete="off" data-i18n-placeholder="searchPlaceholder">
           </div>
 
-          <div class="filter-tabs" aria-label="Filtros">
-            <button class="filter-button is-active" type="button" data-filter="all">Todas</button>
-            <button class="filter-button star-filter" type="button" data-filter="favorites" aria-label="Favoritas">&#9733;</button>
-            <button class="filter-button" type="button" data-filter="date">Fecha</button>
+          <div class="filter-tabs" aria-label="Filtros" data-i18n-aria-label="filtersLabel">
+            <button class="filter-button is-active" type="button" data-filter="all" data-i18n="all">Todas</button>
+            <button class="filter-button star-filter" type="button" data-filter="favorites" aria-label="Favoritas" data-i18n-aria-label="favorites">&#9733;</button>
+            <button class="filter-button" type="button" data-filter="date" data-i18n="date">Fecha</button>
           </div>
 
           <div class="date-filter" id="dateFilter" hidden>
             <label>
-              <span>Desde</span>
+              <span data-i18n="from">Desde</span>
               <input id="dateFromInput" type="date">
             </label>
             <label>
-              <span>Hasta</span>
+              <span data-i18n="to">Hasta</span>
               <input id="dateToInput" type="date">
             </label>
           </div>
@@ -63,27 +70,27 @@
           <div class="notes-list" id="notesList" aria-live="polite"></div>
         </section>
 
-        <section class="editor-pane" id="editorPane" aria-label="Editor de nota">
+        <section class="editor-pane" id="editorPane" aria-label="Editor de nota" data-i18n-aria-label="editorPaneLabel">
           <form class="note-form" id="noteForm" hidden>
-            <div class="editor-toolbar" aria-label="Acciones de nota">
+            <div class="editor-toolbar" aria-label="Acciones de nota" data-i18n-aria-label="noteActions">
               <button class="toolbar-button" id="saveButton" type="button">Editar</button>
               <button class="star-button" id="favoriteButton" type="button" aria-label="Marcar como favorita">&#9733;</button>
-              <button class="toolbar-button danger" id="deleteButton" type="button">Eliminar</button>
+              <button class="toolbar-button danger" id="deleteButton" type="button" data-i18n="delete">Eliminar</button>
             </div>
 
-            <div class="list-toolbar" id="listToolbar" aria-label="Listas" hidden>
-              <button class="list-mode-button" type="button" data-list-mode="bullet" aria-label="Lista con puntos">&bull;</button>
-              <button class="list-mode-button" type="button" data-list-mode="dash" aria-label="Lista con lineas">-</button>
-              <button class="list-mode-button" type="button" data-list-mode="number" aria-label="Lista numerada">1.</button>
-              <button class="emoji-menu-button" id="emojiButton" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Abrir emojis">&#128522;</button>
+            <div class="list-toolbar" id="listToolbar" aria-label="Listas" hidden data-i18n-aria-label="lists">
+              <button class="list-mode-button" type="button" data-list-mode="bullet" aria-label="Lista con puntos" data-i18n-aria-label="bulletList">&bull;</button>
+              <button class="list-mode-button" type="button" data-list-mode="dash" aria-label="Lista con lineas" data-i18n-aria-label="dashList">-</button>
+              <button class="list-mode-button" type="button" data-list-mode="number" aria-label="Lista numerada" data-i18n-aria-label="numberList">1.</button>
+              <button class="emoji-menu-button" id="emojiButton" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Abrir emojis" data-i18n-aria-label="openEmoji">&#128522;</button>
             </div>
 
-            <div class="number-list-choice" id="numberListChoice" hidden aria-label="Elegir numeracion">
-              <button class="number-choice-button" id="continueNumberListButton" type="button">Continuar lista</button>
-              <button class="number-choice-button" id="newNumberListButton" type="button">Nueva lista</button>
+            <div class="number-list-choice" id="numberListChoice" hidden aria-label="Elegir numeracion" data-i18n-aria-label="chooseNumbering">
+              <button class="number-choice-button" id="continueNumberListButton" type="button" data-i18n="continueList">Continuar lista</button>
+              <button class="number-choice-button" id="newNumberListButton" type="button" data-i18n="newList">Nueva lista</button>
             </div>
 
-            <div class="emoji-palette" id="emojiPalette" hidden aria-label="Elegir emoji">
+            <div class="emoji-palette" id="emojiPalette" hidden aria-label="Elegir emoji" data-i18n-aria-label="chooseEmoji">
               <button class="emoji-option" type="button" data-emoji="&#128512;">&#128512;</button>
               <button class="emoji-option" type="button" data-emoji="&#128513;">&#128513;</button>
               <button class="emoji-option" type="button" data-emoji="&#128514;">&#128514;</button>
@@ -102,11 +109,11 @@
               <button class="emoji-option" type="button" data-emoji="&#10024;">&#10024;</button>
             </div>
 
-            <label class="sr-only" for="titleInput">Titulo</label>
-            <input class="title-input" id="titleInput" type="text" placeholder="Titulo" maxlength="120">
+            <label class="sr-only" for="titleInput" data-i18n="titleLabel">Titulo</label>
+            <input class="title-input" id="titleInput" type="text" placeholder="Titulo" maxlength="120" data-i18n-placeholder="titlePlaceholder">
 
-            <label class="sr-only" for="contentInput">Contenido</label>
-            <textarea class="content-input" id="contentInput" placeholder="Escribe tu nota..." spellcheck="true"></textarea>
+            <label class="sr-only" for="contentInput" data-i18n="contentLabel">Contenido</label>
+            <textarea class="content-input" id="contentInput" placeholder="Escribe tu nota..." spellcheck="true" data-i18n-placeholder="contentPlaceholder"></textarea>
 
             <div class="note-meta">
               <span id="updatedAtText"></span>

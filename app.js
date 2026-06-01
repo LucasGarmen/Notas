@@ -1,11 +1,18 @@
 const STORAGE_KEYS = {
   notes: "notas-locales-data-v1",
-  theme: "notas-locales-theme-v1"
+  theme: "notas-locales-theme-v1",
+  language: "notas-locales-language-v1"
 };
 
 const LIST_MODES = {
   bullet: { marker: "\u2022 " },
   dash: { marker: "- " }
+};
+
+const LANGUAGE_LOCALES = {
+  es: "es",
+  pt: "pt-BR",
+  en: "en"
 };
 
 // Estado central de la aplicacion. La interfaz siempre se renderiza desde aqui.
@@ -18,6 +25,9 @@ const state = {
   search: "",
   dateFrom: "",
   dateTo: "",
+  language: "es",
+  statusKey: "localSaved",
+  statusValues: {},
   saveTimer: null
 };
 
@@ -27,9 +37,11 @@ document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   cacheElements();
+  loadLanguage();
   loadTheme();
   loadNotes();
   bindEvents();
+  applyLanguage(state.language, { save: false, render: false });
   renderNotes();
   renderEditor();
   registerServiceWorker();
@@ -41,6 +53,7 @@ function cacheElements() {
   els.saveStatus = document.getElementById("saveStatus");
   els.backButton = document.getElementById("backButton");
   els.newNoteButton = document.getElementById("newNoteButton");
+  els.languageSelect = document.getElementById("languageSelect");
   els.themeToggle = document.getElementById("themeToggle");
   els.searchInput = document.getElementById("searchInput");
   els.filterButtons = Array.from(document.querySelectorAll(".filter-button"));
@@ -68,6 +81,10 @@ function cacheElements() {
 function bindEvents() {
   els.newNoteButton.addEventListener("click", createNote);
   els.backButton.addEventListener("click", showListView);
+  els.languageSelect.addEventListener("change", () => {
+    saveCurrentNote({ silent: true });
+    applyLanguage(els.languageSelect.value);
+  });
   els.themeToggle.addEventListener("click", toggleTheme);
   els.noteForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -149,6 +166,72 @@ function bindEvents() {
   });
 }
 
+function loadLanguage() {
+  const savedLanguage = localStorage.getItem(STORAGE_KEYS.language);
+  state.language = getSupportedLanguage(savedLanguage);
+}
+
+function applyLanguage(language, options = {}) {
+  state.language = getSupportedLanguage(language);
+  document.documentElement.lang = state.language;
+
+  if (els.languageSelect) {
+    els.languageSelect.value = state.language;
+  }
+
+  if (options.save !== false) {
+    localStorage.setItem(STORAGE_KEYS.language, state.language);
+  }
+
+  translateStaticText();
+  renderStatus();
+  applyTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+
+  if (options.render !== false) {
+    renderNotes();
+    renderEditor();
+  }
+}
+
+function translateStaticText() {
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+  });
+
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+    element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
+  });
+
+  document.querySelectorAll("[data-i18n-content]").forEach((element) => {
+    element.setAttribute("content", t(element.dataset.i18nContent));
+  });
+}
+
+function t(key, values = {}) {
+  const translations = window.APP_TRANSLATIONS || {};
+  const dictionary = translations[state.language] || translations.es || {};
+  const fallback = translations.es || {};
+  const template = dictionary[key] || fallback[key] || key;
+
+  return template.replace(/\{(\w+)\}/g, (match, name) => {
+    return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : match;
+  });
+}
+
+function getSupportedLanguage(language) {
+  const translations = window.APP_TRANSLATIONS || {};
+
+  if (language && Object.prototype.hasOwnProperty.call(translations, language)) {
+    return language;
+  }
+
+  return "es";
+}
+
 function loadNotes() {
   // localStorage mantiene todas las notas en el dispositivo, sin backend.
   try {
@@ -166,7 +249,7 @@ function saveNotes() {
     localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify(state.notes));
   } catch (error) {
     console.warn("No se pudieron guardar las notas.", error);
-    setStatus("No se pudo guardar");
+    setStatus("saveFailed");
   }
 }
 
@@ -208,7 +291,7 @@ function createNote() {
   renderNotes();
   renderEditor();
   showEditorView();
-  setStatus("Nota creada");
+  setStatus("noteCreated");
 
   requestAnimationFrame(() => els.titleInput.focus());
 }
@@ -253,7 +336,7 @@ function saveCurrentNote(options = {}) {
   renderMeta(note);
 
   if (!options.silent) {
-    setStatus(changed ? "Guardado" : "Sin cambios");
+    setStatus(changed ? "saved" : "noChanges");
   }
 
   return true;
@@ -266,7 +349,7 @@ function saveAndReturnHome() {
   state.listMode = null;
   renderEditor();
   showListView({ skipSave: true });
-  setStatus("Guardado");
+  setStatus("saved");
 }
 
 function handleEditSaveButton() {
@@ -285,7 +368,7 @@ function startEditing() {
 
   state.isEditing = true;
   renderEditor();
-  setStatus("Editando...");
+  setStatus("editing");
 
   requestAnimationFrame(() => {
     if (els.titleInput.value.trim()) {
@@ -302,7 +385,7 @@ function scheduleAutoSave() {
     return;
   }
 
-  setStatus("Editando...");
+  setStatus("editing");
   clearTimeout(state.saveTimer);
   state.saveTimer = setTimeout(() => {
     saveCurrentNote();
@@ -329,8 +412,8 @@ function deleteCurrentNote() {
     return;
   }
 
-  const title = note.title.trim() || "Sin titulo";
-  const confirmed = window.confirm(`Eliminar "${title}"? Esta accion no se puede deshacer.`);
+  const title = note.title.trim() || t("untitled");
+  const confirmed = window.confirm(t("deleteConfirm", { title }));
 
   if (!confirmed) {
     return;
@@ -342,7 +425,7 @@ function deleteCurrentNote() {
   renderNotes();
   renderEditor();
   showListView();
-  setStatus("Nota eliminada");
+  setStatus("noteDeleted");
 }
 
 function toggleFavorite() {
@@ -357,7 +440,7 @@ function toggleFavorite() {
   saveNotes();
   renderNotes();
   renderEditor();
-  setStatus(note.favorite ? "Con estrella" : "Sin estrella");
+  setStatus(note.favorite ? "favorited" : "unfavorited");
 }
 
 function renderNotes() {
@@ -382,7 +465,7 @@ function createNoteCard(note) {
   card.className = "note-card";
   card.type = "button";
   card.dataset.id = note.id;
-  card.setAttribute("aria-label", `Abrir nota ${note.title.trim() || "Sin titulo"}`);
+  card.setAttribute("aria-label", t("openNote", { title: note.title.trim() || t("untitled") }));
 
   if (note.id === state.selectedId) {
     card.classList.add("is-active");
@@ -391,7 +474,7 @@ function createNoteCard(note) {
 
   const title = document.createElement("h2");
   title.className = "note-card-title";
-  title.textContent = note.title.trim() || "Sin titulo";
+  title.textContent = note.title.trim() || t("untitled");
 
   const titleRow = document.createElement("div");
   titleRow.className = "card-title-row";
@@ -401,20 +484,20 @@ function createNoteCard(note) {
     const star = document.createElement("span");
     star.className = "card-star";
     star.textContent = "\u2605";
-    star.setAttribute("aria-label", "Favorita");
+    star.setAttribute("aria-label", t("favorite"));
     titleRow.append(star);
   }
 
   const preview = document.createElement("p");
   preview.className = "note-card-preview";
-  preview.textContent = note.content.trim() || "Sin contenido";
+  preview.textContent = note.content.trim() || t("noContent");
 
   const footer = document.createElement("div");
   footer.className = "card-footer";
 
   const date = document.createElement("span");
   date.className = "card-date";
-  date.textContent = `Guardada ${formatDate(note.updatedAt)}`;
+  date.textContent = t("savedCard", { date: formatDate(note.updatedAt) });
 
   footer.append(date);
   card.append(titleRow, preview, footer);
@@ -437,18 +520,18 @@ function renderEditor() {
   setEditorMode(state.isEditing);
   renderMeta(note);
 
-  els.saveButton.textContent = state.isEditing ? "Guardar" : "Editar";
+  els.saveButton.textContent = state.isEditing ? t("save") : t("edit");
   els.saveButton.classList.toggle("save-mode", state.isEditing);
-  els.saveButton.setAttribute("aria-label", state.isEditing ? "Guardar nota" : "Editar nota");
+  els.saveButton.setAttribute("aria-label", state.isEditing ? t("saveNote") : t("editNote"));
   els.favoriteButton.textContent = "\u2605";
   els.favoriteButton.classList.toggle("is-active", note.favorite);
   els.favoriteButton.setAttribute("aria-pressed", String(note.favorite));
-  els.favoriteButton.setAttribute("aria-label", note.favorite ? "Quitar de favoritas" : "Marcar como favorita");
+  els.favoriteButton.setAttribute("aria-label", note.favorite ? t("removeFavorite") : t("markFavorite"));
   renderListButtons();
 }
 
 function renderMeta(note) {
-  els.updatedAtText.textContent = `Guardada: ${formatDate(note.updatedAt)}`;
+  els.updatedAtText.textContent = t("savedMeta", { date: formatDate(note.updatedAt) });
 }
 
 function setEditorMode(isEditing) {
@@ -750,18 +833,18 @@ function matchesSearch(note) {
 
 function getEmptyMessage() {
   if (state.search) {
-    return "No hay resultados para la busqueda.";
+    return t("emptySearch");
   }
 
   if (state.filter === "favorites") {
-    return "No hay notas con estrella.";
+    return t("emptyFavorites");
   }
 
   if (state.filter === "date") {
-    return "No hay notas en ese rango de fecha.";
+    return t("emptyDate");
   }
 
-  return "No hay notas todavia.";
+  return t("emptyAll");
 }
 
 function getSelectedNote() {
@@ -828,23 +911,29 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem(STORAGE_KEYS.theme, theme);
   els.themeToggle.setAttribute("aria-checked", String(theme === "dark"));
-  els.themeToggle.setAttribute("aria-label", theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
-  els.themeToggle.title = theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+  els.themeToggle.setAttribute("aria-label", theme === "dark" ? t("lightTheme") : t("darkTheme"));
+  els.themeToggle.title = theme === "dark" ? t("lightTheme") : t("darkTheme");
   els.themeColorMeta.setAttribute("content", theme === "dark" ? "#141414" : "#2563eb");
 }
 
-function setStatus(message) {
-  els.saveStatus.textContent = message;
+function setStatus(key, values = {}) {
+  state.statusKey = key;
+  state.statusValues = values;
+  renderStatus();
+}
+
+function renderStatus() {
+  els.saveStatus.textContent = t(state.statusKey, state.statusValues);
 }
 
 function formatDate(value) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "Fecha no disponible";
+    return t("dateUnavailable");
   }
 
-  return new Intl.DateTimeFormat(navigator.language || "es", {
+  return new Intl.DateTimeFormat(LANGUAGE_LOCALES[state.language] || "es", {
     dateStyle: "short",
     timeStyle: "short"
   }).format(date);
@@ -866,6 +955,6 @@ function registerServiceWorker() {
 
   navigator.serviceWorker
     .register("./service-worker.js")
-    .then(() => setStatus("Offline listo"))
+    .then(() => setStatus("offlineReady"))
     .catch((error) => console.warn("No se pudo registrar el service worker.", error));
 }

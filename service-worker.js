@@ -1,8 +1,9 @@
-const CACHE_NAME = "notas-locales-v10";
+const CACHE_NAME = "notas-locales-v11";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
+  "./translations.js",
   "./app.js",
   "./manifest.json",
   "./icons/icon-192.png",
