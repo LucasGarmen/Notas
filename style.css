@@ -428,15 +428,21 @@ textarea:focus-visible {
   color: var(--text);
 }
 
+#saveButton {
+  border-color: #ca8a04;
+  background: #facc15;
+  color: #000000;
+}
+
 .toolbar-button.is-active {
   border-color: var(--primary);
   background: var(--primary-soft);
 }
 
-.toolbar-button.save-mode {
+#saveButton.save-mode {
   border-color: #dc2626;
   background: #ef4444;
-  color: #171717;
+  color: #000000;
 }
 
 .toolbar-button.danger {
