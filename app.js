@@ -9,6 +9,10 @@ const LIST_MODES = {
   dash: { marker: "- " }
 };
 
+const STRIKE_MARK = "\u0335";
+const STRIKE_MARK_REGEX = /[\u0335\u0336]/g;
+const STRIKE_MARK_TEST_REGEX = /[\u0335\u0336]/;
+
 const LANGUAGE_LOCALES = {
   es: "es",
   pt: "pt-BR",
@@ -21,6 +25,7 @@ const state = {
   selectedId: null,
   isEditing: false,
   listMode: null,
+  strikeMode: false,
   filter: "all",
   search: "",
   dateFrom: "",
@@ -67,6 +72,7 @@ function cacheElements() {
   els.deleteButton = document.getElementById("deleteButton");
   els.listToolbar = document.getElementById("listToolbar");
   els.listButtons = Array.from(document.querySelectorAll(".list-mode-button[data-list-mode]"));
+  els.strikeLineButton = document.getElementById("strikeLineButton");
   els.emojiButton = document.getElementById("emojiButton");
   els.emojiPalette = document.getElementById("emojiPalette");
   els.emojiButtons = Array.from(document.querySelectorAll(".emoji-option"));
@@ -97,13 +103,17 @@ function bindEvents() {
   els.titleInput.addEventListener("input", scheduleAutoSave);
   els.contentInput.addEventListener("input", handleContentInput);
   els.contentInput.addEventListener("keydown", handleContentKeydown);
-  els.contentInput.addEventListener("click", syncListModeWithCaret);
+  els.contentInput.addEventListener("pointerup", handleContentPointerUp);
+  els.contentInput.addEventListener("click", handleContentClick);
   els.contentInput.addEventListener("keyup", syncListModeWithCaret);
 
   els.listButtons.forEach((button) => {
     button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("click", () => toggleListMode(button.dataset.listMode));
   });
+
+  els.strikeLineButton.addEventListener("mousedown", (event) => event.preventDefault());
+  els.strikeLineButton.addEventListener("click", toggleStrikeMode);
 
   els.emojiButton.addEventListener("mousedown", (event) => event.preventDefault());
   els.emojiButton.addEventListener("click", toggleEmojiPalette);
@@ -284,6 +294,7 @@ function createNote() {
   state.selectedId = note.id;
   state.isEditing = true;
   state.listMode = null;
+  state.strikeMode = false;
   state.filter = "all";
   saveNotes();
   renderFilterButtons();
@@ -301,6 +312,7 @@ function selectNote(id) {
   state.selectedId = id;
   state.isEditing = false;
   state.listMode = null;
+  state.strikeMode = false;
   renderNotes();
   renderEditor();
   showEditorView();
@@ -347,8 +359,9 @@ function saveAndReturnHome() {
   state.selectedId = null;
   state.isEditing = false;
   state.listMode = null;
-  renderEditor();
+  state.strikeMode = false;
   showListView({ skipSave: true });
+  renderEditor();
   setStatus("saved");
 }
 
@@ -395,6 +408,24 @@ function scheduleAutoSave() {
 function handleContentInput() {
   closeNumberListChoice();
   scheduleAutoSave();
+  syncListModeWithCaret();
+}
+
+function handleContentPointerUp() {
+  if (state.strikeMode) {
+    requestAnimationFrame(() => {
+      if (state.strikeMode) {
+        toggleStrikeCurrentLine();
+      }
+    });
+  }
+}
+
+function handleContentClick() {
+  if (state.strikeMode) {
+    return;
+  }
+
   syncListModeWithCaret();
 }
 
@@ -528,6 +559,7 @@ function renderEditor() {
   els.favoriteButton.setAttribute("aria-pressed", String(note.favorite));
   els.favoriteButton.setAttribute("aria-label", note.favorite ? t("removeFavorite") : t("markFavorite"));
   renderListButtons();
+  renderStrikeButton();
 }
 
 function renderMeta(note) {
@@ -542,9 +574,12 @@ function setEditorMode(isEditing) {
 
   if (!isEditing) {
     state.listMode = null;
+    state.strikeMode = false;
     closeEmojiPalette();
     closeNumberListChoice();
   }
+
+  renderStrikeButton();
 }
 
 function toggleListMode(mode) {
@@ -552,7 +587,9 @@ function toggleListMode(mode) {
     return;
   }
 
+  state.strikeMode = false;
   closeEmojiPalette();
+  renderStrikeButton();
 
   if (state.listMode === mode) {
     state.listMode = null;
@@ -576,6 +613,20 @@ function toggleListMode(mode) {
   applyListModeToCurrentLine(state.listMode);
 }
 
+function toggleStrikeMode() {
+  if (!state.isEditing) {
+    return;
+  }
+
+  state.strikeMode = true;
+  state.listMode = null;
+  closeEmojiPalette();
+  closeNumberListChoice();
+  renderListButtons();
+  renderStrikeButton();
+  els.contentInput.focus();
+}
+
 function renderListButtons() {
   els.listButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.listMode === state.listMode);
@@ -583,11 +634,18 @@ function renderListButtons() {
   });
 }
 
+function renderStrikeButton() {
+  els.strikeLineButton.classList.toggle("is-active", state.strikeMode);
+  els.strikeLineButton.setAttribute("aria-pressed", String(state.strikeMode));
+}
+
 function toggleEmojiPalette() {
   if (!state.isEditing) {
     return;
   }
 
+  state.strikeMode = false;
+  renderStrikeButton();
   closeNumberListChoice();
   const shouldOpen = els.emojiPalette.hidden;
   els.emojiPalette.hidden = !shouldOpen;
@@ -703,6 +761,44 @@ function syncListModeWithCaret() {
 function clearListMode() {
   state.listMode = null;
   renderListButtons();
+}
+
+function toggleStrikeCurrentLine() {
+  if (!state.isEditing) {
+    return;
+  }
+
+  const input = els.contentInput;
+  const value = input.value;
+  const caret = input.selectionStart ?? value.length;
+  const line = getCurrentLineInfo(value, caret);
+
+  if (!line.text.length) {
+    return;
+  }
+
+  const plainLine = removeStrikeMarks(line.text);
+  const nextLine = hasStrikeMarks(line.text) ? plainLine : addStrikeMarks(plainLine);
+
+  input.value = value.slice(0, line.start) + nextLine + value.slice(line.end);
+  input.setSelectionRange(line.start + nextLine.length, line.start + nextLine.length);
+  input.focus();
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  state.listMode = null;
+  renderListButtons();
+  renderStrikeButton();
+}
+
+function addStrikeMarks(text) {
+  return Array.from(text).map((character) => character + STRIKE_MARK).join("");
+}
+
+function hasStrikeMarks(text) {
+  return STRIKE_MARK_TEST_REGEX.test(text);
+}
+
+function removeStrikeMarks(text) {
+  return text.replace(STRIKE_MARK_REGEX, "");
 }
 
 function shouldAskNumberListChoice() {
@@ -862,6 +958,7 @@ function showListView(options = {}) {
 
   state.isEditing = false;
   state.listMode = null;
+  state.strikeMode = false;
   els.body.dataset.view = "list";
   renderNotes();
 }
@@ -923,6 +1020,10 @@ function setStatus(key, values = {}) {
 }
 
 function renderStatus() {
+  if (!els.saveStatus) {
+    return;
+  }
+
   els.saveStatus.textContent = t(state.statusKey, state.statusValues);
 }
 

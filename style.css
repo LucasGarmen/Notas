@@ -481,7 +481,7 @@ textarea:focus-visible {
 
 .list-toolbar {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -497,6 +497,11 @@ textarea:focus-visible {
   border-color: var(--primary);
   background: var(--primary-soft);
   color: var(--text);
+}
+
+.strike-line-button span {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
 }
 
 .emoji-menu-button {
@@ -677,9 +682,18 @@ body[data-view="list"] #backButton {
   }
 
   .list-pane,
-  body[data-view="editor"] .list-pane,
-  body[data-view="list"] .editor-pane {
+  body[data-view="editor"] .list-pane {
     display: flex;
+  }
+
+  body[data-view="list"] .layout {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  body[data-view="list"] .editor-pane {
+    display: none;
   }
 
   .list-pane {
@@ -689,10 +703,20 @@ body[data-view="list"] #backButton {
     overflow: hidden;
   }
 
+  body[data-view="list"] .list-pane {
+    min-height: calc(100dvh - var(--topbar-height) - env(safe-area-inset-top));
+    border-right: 0;
+    overflow: visible;
+  }
+
   .notes-list {
     min-height: 0;
     overflow: auto;
     padding-right: 4px;
+  }
+
+  body[data-view="list"] .notes-list {
+    overflow: visible;
   }
 
   .editor-pane {
