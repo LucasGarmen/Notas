@@ -1,4 +1,4 @@
-const CACHE_NAME = "notas-locales-v15";
+const CACHE_NAME = "notas-locales-v16";
 const APP_SHELL = [
   "./",
   "./index.html",

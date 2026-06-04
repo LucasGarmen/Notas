@@ -618,10 +618,14 @@ function toggleStrikeMode() {
     return;
   }
 
-  state.strikeMode = true;
-  state.listMode = null;
-  closeEmojiPalette();
-  closeNumberListChoice();
+  state.strikeMode = !state.strikeMode;
+
+  if (state.strikeMode) {
+    state.listMode = null;
+    closeEmojiPalette();
+    closeNumberListChoice();
+  }
+
   renderListButtons();
   renderStrikeButton();
   els.contentInput.focus();
