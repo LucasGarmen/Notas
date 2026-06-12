@@ -35,3 +35,4 @@ O **Mobile NoteApp** foi estruturado pensando na agilidade do dia a dia, garanti
 * **Linguagem/Framework:** [Ex: Python/Kivy, React Native, etc.]
 * **Armazenamento:** [Ex: SQLite, LocalStorage, etc.]
 * **Versionamento:** Git & GitHub
+* **Link de descarga:**   https://github.com/LucasGarmen/Notas/releases/download/v1.0.0/block.de.notas.apk
